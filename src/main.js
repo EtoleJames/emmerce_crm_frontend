@@ -5,8 +5,8 @@ import { createVuetify } from "vuetify";
 import "@mdi/font/css/materialdesignicons.css";
 import router from "./router";
 import { createPinia } from "pinia";
+import vuetify from "./plugins/vuetify";
 
-const vuetify = createVuetify();
 const app = createApp(App);
 
 app.use(vuetify).use(createPinia()).use(router).mount("#app");
