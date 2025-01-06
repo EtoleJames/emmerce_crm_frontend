@@ -1,83 +1,104 @@
 <template>
-  <v-app>
-    <!-- Navbar remains unchanged -->
-    <Navbar />
+  <AppLayout>
+    <v-container fluid>
+      <!-- Dashboard Content -->
+      <v-row>
+        <!-- Leads Card -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="pa-4" outlined>
+            <v-card-title>Leads</v-card-title>
+            <v-card-subtitle>{{ leadsCount }}</v-card-subtitle>
+            <v-card-actions>
+              <v-btn color="primary" @click="navigateTo('/leads')">View</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
 
-    <!-- Full screen container for the login page -->
-    <v-container
-      fluid
-      class="d-flex justify-center align-center login-container"
-      style="height: 100vh; background-color: #f5f5f5"
-    >
-      <!-- Card for login form -->
-      <v-card class="pa-5" max-width="400px" width="100%">
-        <v-card-title>
-          <span class="headline">Login</span>
-        </v-card-title>
+        <!-- Contacts Card -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="pa-4" outlined>
+            <v-card-title>Contacts</v-card-title>
+            <v-card-subtitle>{{ contactsCount }}</v-card-subtitle>
+            <v-card-actions>
+              <v-btn color="primary" @click="navigateTo('/contacts')"
+                >View</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-col>
 
-        <!-- Login Form -->
-        <v-form ref="form" v-model="valid" @submit.prevent="login">
-          <v-text-field
-            v-model="email"
-            label="Email"
-            prepend-icon="mdi-email"
-            type="email"
-            :rules="[emailRules]"
-            required
-          ></v-text-field>
+        <!-- Notes Card -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="pa-4" outlined>
+            <v-card-title>Notes</v-card-title>
+            <v-card-subtitle>{{ notesCount }}</v-card-subtitle>
+            <v-card-actions>
+              <v-btn color="primary" @click="navigateTo('/notes')">View</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
 
-          <v-text-field
-            v-model="password"
-            label="Password"
-            prepend-icon="mdi-lock"
-            type="password"
-            :rules="[passwordRules]"
-            required
-          ></v-text-field>
-
-          <v-btn :disabled="!valid" color="primary" block type="submit">
-            Login
-          </v-btn>
-        </v-form>
-      </v-card>
+        <!-- Reminders Card -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="pa-4" outlined>
+            <v-card-title>Reminders</v-card-title>
+            <v-card-subtitle>{{ remindersCount }}</v-card-subtitle>
+            <v-card-actions>
+              <v-btn color="primary" @click="navigateTo('/reminders')"
+                >View</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
     </v-container>
-  </v-app>
+  </AppLayout>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import Navbar from "../components/Navbar.vue";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import AppLayout from "../layouts/AppLayout.vue";
 
-const email = ref("");
-const password = ref("");
-const valid = ref(false);
+// Metrics for dashboard
+const leadsCount = ref(0);
+const contactsCount = ref(0);
+const notesCount = ref(0);
+const remindersCount = ref(0);
 
-const emailRules = [
-  (v) => !!v || "Email is required",
-  (v) => /.+@.+\..+/.test(v) || "Email must be valid",
-];
+// Use Vue Router
+const router = useRouter();
 
-const passwordRules = [
-  (v) => !!v || "Password is required",
-  (v) => v.length >= 6 || "Password must be at least 6 characters",
-];
-
-const login = () => {
-  // handle login logic here
+// Function to navigate to different pages
+const navigateTo = (path) => {
+  router.push(path);
 };
+
+onMounted(() => {
+  // For now, we are using dummy data, this will be replaced with API calls
+  leadsCount.value = 10;
+  contactsCount.value = 5;
+  notesCount.value = 8;
+  remindersCount.value = 3;
+});
 </script>
 
 <style scoped>
-/* Override the max-width for the login page */
-.login-container {
-  width: 100vw !important;
-}
-
 .v-container {
-  padding: 0 !important;
+  padding-top: 20px;
 }
 
 .v-card {
-  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.v-card-title {
+  font-weight: bold;
+}
+
+.v-card-actions {
+  margin-top: auto;
 }
 </style>

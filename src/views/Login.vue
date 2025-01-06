@@ -87,7 +87,7 @@ const rules = {
 function login() {
   if (username.value && password.value) {
     // Perform authentication logic here
-    router.push("/dashboard"); // Redirect to the dashboard
+    router.push("/dashboard"); 
   } else {
     alert("Please fill in all fields.");
   }
