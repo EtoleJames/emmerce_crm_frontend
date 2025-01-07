@@ -135,8 +135,8 @@ async function login() {
       });
 
       // Store both access and refresh tokens securely and update the auth store
-      const { access, refresh } = response;
-      authStore.setTokens(access, refresh); // Update the store with tokens
+      const { access, refresh, current_user } = response;
+      authStore.setTokens(access, refresh, current_user.id); // Update the store with tokens
 
       // Redirect to the dashboard
       router.push("/dashboard");
