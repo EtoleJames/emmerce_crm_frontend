@@ -60,17 +60,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
-import {
-  mdiHome,
-  mdiLeadPencil,
-  mdiAccount,
-  mdiNotebook,
-  mdiAlarm,
-  mdiBell,
-  mdiBellRing,
-  mdiMenu,
-} from "@mdi/js"; // Import Material Design Icons
-import axios from "axios";
+import axios from "../plugins/axios";
 
 // Sidebar and Navbar logic
 const drawer = ref(false);
@@ -83,70 +73,20 @@ const menuItems = [
   { title: "Reminders", route: "/reminders", icon: "mdi-alarm" },
 ];
 
-// Mock reminders count for now
-const remindersCount = ref(3);
+const remindersCount = ref(0); // Reactive count variable
 
 const router = useRouter();
 
-// Login session logic
-const isAuthenticated = ref(false);
-let isNavigating = ref(false);
+// Authentication logic
 const accessToken = ref(localStorage.getItem("access_token"));
-const refreshToken = ref(localStorage.getItem("refresh_token"));
 
-// Check if the user is authenticated
-const checkAuthentication = async () => {
-  // If there's no access token, redirect to login
-  if (!accessToken.value) {
-    router.push("/login");
-    return;
-  }
-
+// Fetch reminders count from API
+const fetchRemindersCount = async () => {
   try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/token/verify/`,
-      {
-        token: accessToken.value,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken.value}`,
-        },
-      }
-    );
-
-    if (response.status === 200) {
-      isAuthenticated.value = true;
-    }
+    const response = await axios.get("/reminders/");
+    remindersCount.value = response.data.count || 0;
   } catch (error) {
-    // If the access token is invalid or expired, attempt to refresh it
-    if (error.response && error.response.status === 401) {
-      await refreshAccessToken();
-    } else {
-      // If the refresh token is also invalid or expired, log the user out
-      logout();
-    }
-  }
-};
-
-// Refresh access token using the refresh token
-const refreshAccessToken = async () => {
-  try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/token/refresh/`,
-      {
-        refresh_token: refreshToken.value,
-      }
-    );
-
-    if (response.status === 200) {
-      accessToken.value = response.data.access_token;
-      localStorage.setItem("access_token", accessToken.value);
-      checkAuthentication();
-    }
-  } catch (error) {
-    console.error("Error refreshing access token:", error);
-    logout();
+    console.error("Failed to fetch reminders count:", error);
   }
 };
 
@@ -154,9 +94,6 @@ const refreshAccessToken = async () => {
 const logout = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
-  accessToken.value = "";
-  refreshToken.value = "";
-  // router.push("/dashboard");
   window.location.reload();
 };
 
@@ -171,17 +108,14 @@ const toggleDrawer = () => {
 
 // Navigation function
 const navigateTo = (path) => {
-  if (!isNavigating) {
-    isNavigating = true;
-    router.push(path).finally(() => {
-      isNavigating = false;
-    });
-  }
+  router.push(path);
 };
 
-// Perform authentication check when the component is mounted
+// Perform API fetch when the component is mounted
 onMounted(() => {
-  checkAuthentication();
+  if (accessToken.value) {
+    fetchRemindersCount();
+  }
 });
 </script>
 
@@ -195,6 +129,6 @@ onMounted(() => {
 }
 
 .small-title {
-  font-size: 16px; /* Adjust font size for small screens */
+  font-size: 16px;
 }
 </style>

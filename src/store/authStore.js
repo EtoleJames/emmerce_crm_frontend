@@ -4,6 +4,7 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     accessToken: localStorage.getItem("access_token") || null,
     refreshToken: localStorage.getItem("refresh_token") || null,
+    current_user: localStorage.getItem("current_user") || null,
   }),
   getters: {
     // Check if the user is authenticated based on the presence of the access token
@@ -11,19 +12,23 @@ export const useAuthStore = defineStore("auth", {
   },
   actions: {
     // Set both access and refresh tokens
-    setTokens(access, refresh) {
+    setTokens(access, refresh, current_user) {
       this.accessToken = access;
       this.refreshToken = refresh;
+      this.current_user = current_user;
       localStorage.setItem("access_token", access);
       localStorage.setItem("refresh_token", refresh);
+      localStorage.setItem("current_user", current_user);
     },
 
     // Logout by clearing tokens from state and localStorage
     logout() {
       this.accessToken = null;
       this.refreshToken = null;
+      this.current_user = null;
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
+      localStorage.removeItem("current_user");
     },
 
     // Refresh the access token with the refresh token
@@ -42,7 +47,7 @@ export const useAuthStore = defineStore("auth", {
 
           if (response.ok) {
             const { access } = await response.json();
-            this.setTokens(access, this.refreshToken); // Set the new access token
+            this.setTokens(access, this.refreshToken, this.current_user); // Set the new access token
           } else {
             this.logout(); // Logout if refreshing the token fails
           }
