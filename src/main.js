@@ -1,7 +1,6 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import "vuetify/styles"; // Import Vuetify styles
-import { createVuetify } from "vuetify";
 import "@mdi/font/css/materialdesignicons.css";
 import router from "./router";
 import { createPinia } from "pinia";
