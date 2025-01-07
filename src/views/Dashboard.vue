@@ -1,9 +1,8 @@
 <template>
   <AppLayout>
     <v-container fluid>
-      <!-- Dashboard Content -->
+      <!-- Dashboard Cards -->
       <v-row>
-        <!-- Leads Card -->
         <v-col cols="12" sm="6" md="3">
           <v-card class="pa-4" outlined>
             <v-card-title>Leads</v-card-title>
@@ -14,7 +13,6 @@
           </v-card>
         </v-col>
 
-        <!-- Contacts Card -->
         <v-col cols="12" sm="6" md="3">
           <v-card class="pa-4" outlined>
             <v-card-title>Contacts</v-card-title>
@@ -27,7 +25,6 @@
           </v-card>
         </v-col>
 
-        <!-- Notes Card -->
         <v-col cols="12" sm="6" md="3">
           <v-card class="pa-4" outlined>
             <v-card-title>Notes</v-card-title>
@@ -38,7 +35,6 @@
           </v-card>
         </v-col>
 
-        <!-- Reminders Card -->
         <v-col cols="12" sm="6" md="3">
           <v-card class="pa-4" outlined>
             <v-card-title>Reminders</v-card-title>
@@ -60,26 +56,31 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import AppLayout from "../layouts/AppLayout.vue";
 
-// Metrics for dashboard
-const leadsCount = ref(0);
-const contactsCount = ref(0);
-const notesCount = ref(0);
-const remindersCount = ref(0);
+// Dashboard data
+const leadsCount = ref(10);
+const contactsCount = ref(5);
+const notesCount = ref(8);
+const remindersCount = ref(3);
+let isNavigating = ref(false);
 
-// Use Vue Router
 const router = useRouter();
 
-// Function to navigate to different pages
+// Navigation function
 const navigateTo = (path) => {
-  router.push(path);
+  if (!isNavigating) {
+    isNavigating = true;
+    router.push(path).finally(() => {
+      isNavigating = false;
+    });
+  }
 };
 
 onMounted(() => {
-  // For now, we are using dummy data, this will be replaced with API calls
+  // Fetch or mock API data for now
   leadsCount.value = 10;
   contactsCount.value = 5;
   notesCount.value = 8;
-  remindersCount.value = 3;
+  remindersCount.value = 3; // Can later be dynamic
 });
 </script>
 

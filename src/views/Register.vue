@@ -1,20 +1,10 @@
 <template>
-  <!-- Snackbar for error message -->
-  <v-snackbar v-model="snackbarVisible" :color="snackbarColor" timeout="5000">
-    {{ snackbarMessage }}
-    <template v-slot:action="{ attrs }">
-      <v-btn color="white" text v-bind="attrs" @click="snackbarVisible = false">
-        Close
-      </v-btn>
-    </template>
-  </v-snackbar>
-
   <v-container
     class="d-flex justify-center align-center"
     style="
-      min-height: 100vh;
       background-color: #f5f5f5;
       padding: 0;
+      min-height: 100vh;
       width: 100%;
     "
   >
@@ -22,22 +12,37 @@
       class="py-6 px-8"
       style="
         width: 400px;
-        max-width: 90%;
         border-radius: 16px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        height: 600px;
       "
     >
       <v-card-title
         class="justify-center text-h5 font-weight-bold"
         style="color: #4a90e2"
       >
-        Login
+        Register
       </v-card-title>
-      <v-card-text>
+
+      <v-card-text class="overflow-auto" style="max-height: calc(100% - 60px)">
         <v-form ref="form" v-model="isFormValid">
+          <v-text-field
+            v-model="username"
+            label="Username"
+            outlined
+            class="mb-4"
+            :rules="[rules.required]"
+          />
           <v-text-field
             v-model="email"
             label="Email"
+            outlined
+            class="mb-4"
+            :rules="[rules.required, rules.email]"
+          />
+          <v-text-field
+            v-model="phone"
+            label="Phone Number"
             outlined
             class="mb-4"
             :rules="[rules.required]"
@@ -50,6 +55,14 @@
             class="mb-4"
             :rules="[rules.required]"
           />
+          <v-text-field
+            v-model="confirmPassword"
+            label="Confirm Password"
+            type="password"
+            outlined
+            class="mb-4"
+            :rules="[rules.required, passwordMatch]"
+          />
 
           <v-btn
             color="primary"
@@ -57,11 +70,11 @@
             large
             rounded
             class="mb-4"
-            @click="login"
+            @click="register"
             :disabled="!isFormValid || loading"
             style="background-color: #4a90e2; color: white"
           >
-            <span v-if="!loading">Login</span>
+            <span v-if="!loading">Register</span>
             <v-progress-circular
               v-else
               indeterminate
@@ -70,90 +83,124 @@
               width="2"
               class="mr-2"
             ></v-progress-circular>
-            <span v-if="loading">Logging In...</span>
+            <span v-if="loading">Registering...</span>
           </v-btn>
 
           <v-divider />
           <div class="text-center mt-4">
             <small style="color: #7a7a7a">
-              Don’t have an account?
+              Already have an account?
               <router-link
-                to="/register"
+                to="/login"
                 style="color: #4a90e2; text-decoration: none"
-                >Sign Up</router-link
+                >Login</router-link
               >
             </small>
           </div>
         </v-form>
       </v-card-text>
     </v-card>
+
+    <!-- Snackbar for success or error message -->
+    <v-snackbar v-model="snackbarVisible" :color="snackbarColor" timeout="5000">
+      {{ snackbarMessage }}
+      <template v-slot:action="{ attrs }">
+        <v-btn
+          color="white"
+          text
+          v-bind="attrs"
+          @click="snackbarVisible = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "../store/authStore";
-import { api } from "../api/api";
+import { api } from "../api/api"; // Import the api utility
 
 const router = useRouter();
-const authStore = useAuthStore(); // Access auth store
+const username = ref("");
 const email = ref("");
+const phone = ref("");
 const password = ref("");
+const confirmPassword = ref("");
 const isFormValid = ref(false);
 const loading = ref(false); // Track loading state
-const snackbarVisible = ref(false); // Snackbar visibility
-const snackbarMessage = ref(""); // Snackbar message content
-const snackbarColor = ref(""); // Snackbar color (success, error, etc.)
+
+const snackbarVisible = ref(false);
+const snackbarMessage = ref("");
+const snackbarColor = ref(""); // Green for success, red for error
 
 const rules = {
   required: (value) => !!value || "This field is required",
+  email: (value) => /.+@.+\..+/.test(value) || "Please enter a valid email",
 };
 
-// Check if the user already has a valid token upon landing on the login page
+const passwordMatch = (value) =>
+  value === password.value || "Passwords must match";
+
+// Check if the user already has a valid token upon landing on the register page
 onMounted(() => {
-  if (authStore.isAuthenticated) {
+  const token = localStorage.getItem("access_token");
+  if (token) {
     // If the access token exists, redirect to the dashboard
     router.push("/dashboard");
   }
 });
 
-async function login() {
+async function register() {
   loading.value = true; // Show loader
+
   const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/`; // Get the base URL from the environment
 
-  if (email.value && password.value) {
+  if (
+    username.value &&
+    email.value &&
+    phone.value &&
+    password.value &&
+    confirmPassword.value
+  ) {
     try {
       // Use the api.js utility for the request
-      const response = await api(`${BASE_URL}auth/login/`, {
+      const response = await api(`${BASE_URL}auth/register/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          username: username.value,
           email: email.value,
+          phone: phone.value,
           password: password.value,
         }),
       });
 
-      // Store both access and refresh tokens securely and update the auth store
-      const { access, refresh } = response;
-      authStore.setTokens(access, refresh); // Update the store with tokens
+      // Show success snackbar
+      snackbarMessage.value = "User successfully registered!";
+      snackbarColor.value = "green";
+      snackbarVisible.value = true;
 
-      // Redirect to the dashboard
-      router.push("/dashboard");
+      // Redirect to the login page after successful registration
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (error) {
-      console.error("Login error:", error); // Log error details
+      console.error("Registration error:", error); // Log error details
       // Show error snackbar
-      snackbarMessage.value = "Invalid email or password. Please try again.";
-      snackbarColor.value = "red"; // Error color
-      snackbarVisible.value = true; // Show snackbar
+      snackbarMessage.value =
+        "There was an error during registration. Please try again.";
+      snackbarColor.value = "red";
+      snackbarVisible.value = true;
     } finally {
       loading.value = false; // Hide loader after the request is done
     }
   } else {
-    // Show error snackbar for missing fields
     snackbarMessage.value = "Please fill in all fields.";
-    snackbarColor.value = "red"; // Error color
-    snackbarVisible.value = true; // Show snackbar
+    snackbarColor.value = "red";
+    snackbarVisible.value = true;
     loading.value = false; // Hide loader if fields are empty
   }
 }
@@ -163,12 +210,25 @@ async function login() {
 v-container {
   font-family: "Roboto", sans-serif;
   color: #ffffff;
+  padding: 0;
+  width: 100%; /* Ensure the container takes full width */
 }
 
 v-card {
   background: #ffffff;
 }
 
+.overflow-auto {
+  overflow-y: auto;
+  max-height: 600px; /* Ensure content can scroll */
+}
+
+.v-card-text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 @media (min-width: 1280px) {
   .v-container {
     width: 100% !important;
