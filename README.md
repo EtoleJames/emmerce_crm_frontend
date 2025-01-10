@@ -136,13 +136,13 @@ Ensure that the backend has JWT authentication set up.
 
 The frontend communicates with the backend using the following main API endpoints:
 
-- **Login**: `/auth/login/` (POST)
-- **Logout**: `/auth/logout/` (POST)
-- **Register**: `/auth/register/` (POST)
-- **Leads**: `/leads/` (GET, POST), `/leads/{id}/` (GET, PUT, PATCH, DELETE)
-- **Contacts**: `/contacts/` (GET, POST), `/contacts/{id}/` (GET, PUT, PATCH, DELETE)
-- **Notes**: `/notes/` (GET, POST), `/notes/{id}/` (GET, PUT, PATCH, DELETE)
-- **Reminders**: `/reminders/` (GET, POST), `/reminders/{id}/` (GET, PUT, PATCH, DELETE)
+- **Login**: `/api/auth/login/` (POST)
+- **Logout**: `/api/auth/logout/` (POST)
+- **Register**: `/api/auth/register/` (POST)
+- **Leads**: `/api/leads/` (GET, POST), `/api/leads/{id}/` (GET, PUT, PATCH, DELETE)
+- **Contacts**: `/api/contacts/` (GET, POST), `/api/contacts/{id}/` (GET, PUT, PATCH, DELETE)
+- **Notes**: `/notes/` (GET, POST), `/api/notes/{id}/` (GET, PUT, PATCH, DELETE)
+- **Reminders**: `/reminders/` (GET, POST), `/api/reminders/{id}/` (GET, PUT, PATCH, DELETE)
 
 All API calls are handled by **Axios** through a custom plugin that adds JWT tokens to request headers automatically.
 

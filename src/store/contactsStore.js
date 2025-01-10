@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import axios from "axios";
-import { useAuthStore } from "./authStore"; // For authentication headers
+import { useAuthStore } from "../store/authStore"; // For authentication headers
 
 export const useContactsStore = defineStore("contacts", {
   state: () => ({
@@ -8,13 +8,16 @@ export const useContactsStore = defineStore("contacts", {
     contactDetails: null,
     loading: false,
     error: null,
+    count: 0, // Add count for contact summaries
   }),
 
   actions: {
+    // Fetch contacts with pagination
     async fetchContacts(page = 1) {
       this.loading = true;
-      const authStore = useAuthStore(); // Retrieve auth headers
+      this.error = null;
       try {
+        const authStore = useAuthStore();
         const response = await axios.get(
           `${import.meta.env.VITE_API_BASE_URL}/api/contacts/`,
           {
@@ -23,6 +26,7 @@ export const useContactsStore = defineStore("contacts", {
           }
         );
         this.contacts = response.data.results;
+        this.count = response.data.count || 0;
       } catch (error) {
         console.error("Failed to fetch contacts:", error);
         this.error = error.response?.data || "Failed to fetch contacts.";
@@ -31,10 +35,12 @@ export const useContactsStore = defineStore("contacts", {
       }
     },
 
+    // Fetch single contact by ID
     async fetchContact(id) {
       this.loading = true;
-      const authStore = useAuthStore();
+      this.error = null;
       try {
+        const authStore = useAuthStore();
         const response = await axios.get(
           `${import.meta.env.VITE_API_BASE_URL}/api/contacts/${id}/`,
           {
@@ -43,7 +49,7 @@ export const useContactsStore = defineStore("contacts", {
         );
         this.contactDetails = response.data;
 
-        // Check if already in contacts, otherwise add it
+        // Add the contact to the list if it doesn't exist
         if (!this.contacts.some((c) => c.id === id)) {
           this.contacts.push(response.data);
         }
@@ -55,9 +61,12 @@ export const useContactsStore = defineStore("contacts", {
       }
     },
 
+    // Create a new contact
     async createContact(data) {
-      const authStore = useAuthStore();
+      this.loading = true;
+      this.error = null;
       try {
+        const authStore = useAuthStore();
         const response = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/api/contacts/`,
           data,
@@ -65,17 +74,24 @@ export const useContactsStore = defineStore("contacts", {
             headers: { Authorization: `Bearer ${authStore.accessToken}` },
           }
         );
-        this.contacts.push(response.data); // Add new contact locally
+        this.contacts.push(response.data); // Add to the local store
+        this.count += 1; // Update the count
         return response.data;
       } catch (error) {
         console.error("Failed to create contact:", error);
-        throw error.response?.data || "Failed to create contact.";
+        this.error = error.response?.data || "Failed to create contact.";
+        throw error; // Rethrow error for handling
+      } finally {
+        this.loading = false;
       }
     },
 
+    // Update an existing contact
     async updateContact(id, data) {
-      const authStore = useAuthStore();
+      this.loading = true;
+      this.error = null;
       try {
+        const authStore = useAuthStore();
         const response = await axios.put(
           `${import.meta.env.VITE_API_BASE_URL}/api/contacts/${id}/`,
           data,
@@ -84,17 +100,25 @@ export const useContactsStore = defineStore("contacts", {
           }
         );
         const index = this.contacts.findIndex((c) => c.id === id);
-        if (index !== -1) this.contacts[index] = response.data; // Update locally
+        if (index !== -1) {
+          this.contacts[index] = response.data; // Update locally
+        }
         return response.data;
       } catch (error) {
         console.error("Failed to update contact:", error);
-        throw error.response?.data || "Failed to update contact.";
+        this.error = error.response?.data || "Failed to update contact.";
+        throw error; // Rethrow error for handling
+      } finally {
+        this.loading = false;
       }
     },
 
+    // Delete a contact
     async deleteContact(id) {
-      const authStore = useAuthStore();
+      this.loading = true;
+      this.error = null;
       try {
+        const authStore = useAuthStore();
         await axios.delete(
           `${import.meta.env.VITE_API_BASE_URL}/api/contacts/${id}/`,
           {
@@ -102,9 +126,13 @@ export const useContactsStore = defineStore("contacts", {
           }
         );
         this.contacts = this.contacts.filter((c) => c.id !== id); // Remove locally
+        this.count = Math.max(0, this.count - 1); // Update the count
       } catch (error) {
         console.error("Failed to delete contact:", error);
-        throw error.response?.data || "Failed to delete contact.";
+        this.error = error.response?.data || "Failed to delete contact.";
+        throw error; // Rethrow error for handling
+      } finally {
+        this.loading = false;
       }
     },
   },

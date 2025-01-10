@@ -97,9 +97,9 @@ const navigateToEditReminder = (id) => {
 };
 
 const deleteReminder = async (id) => {
-  const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/`;
+  const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/`;
   try {
-    await api(`${BASE_URL}reminders/${id}/`, {
+    await api(`${BASE_URL}api/reminders/${id}/`, {
       method: "DELETE",
     });
     fetchReminders();
