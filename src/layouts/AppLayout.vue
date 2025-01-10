@@ -60,7 +60,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
-import axios from "../plugins/axios";
+import { useReminderStore } from "../store/remindersStore";
 
 // Sidebar and Navbar logic
 const drawer = ref(false);
@@ -73,22 +73,14 @@ const menuItems = [
   { title: "Reminders", route: "/reminders", icon: "mdi-alarm" },
 ];
 
-const remindersCount = ref(0); // Reactive count variable
+// Use Reminder Store
+const reminderStore = useReminderStore();
+const { count: remindersCount, fetchRemindersCount } = reminderStore;
 
 const router = useRouter();
 
 // Authentication logic
 const accessToken = ref(localStorage.getItem("access_token"));
-
-// Fetch reminders count from API
-const fetchRemindersCount = async () => {
-  try {
-    const response = await axios.get("/reminders/");
-    remindersCount.value = response.data.count || 0;
-  } catch (error) {
-    console.error("Failed to fetch reminders count:", error);
-  }
-};
 
 // Logout function
 const logout = () => {
@@ -111,7 +103,7 @@ const navigateTo = (path) => {
   router.push(path);
 };
 
-// Perform API fetch when the component is mounted
+// Fetch reminders count when the component is mounted
 onMounted(() => {
   if (accessToken.value) {
     fetchRemindersCount();

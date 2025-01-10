@@ -11,19 +11,20 @@
       </v-row>
 
       <!-- Contacts Table -->
-      <v-row v-if="contactsStore.contacts.length">
+      <v-row v-if="contactStore.contacts.length">
         <v-col>
           <v-data-table
             :headers="tableHeaders"
-            :items="contactsStore.contacts"
-            :items-per-page="contactsStore.itemsPerPage"
-            v-model:page="contactsStore.page"
-            :loading="contactsStore.loading"
-            :server-items-length="contactsStore.totalItems"
-            @update:page="contactsStore.setPage"
+            :items="contactStore.contacts"
+            :items-per-page="itemsPerPage"
+            v-model:page="page"
+            :loading="contactStore.loading"
+            :server-items-length="contactStore.totalItems"
+            @update:page="fetchContacts"
             :rows-per-page-items="[5, 10, 15]"
             class="elevation-1"
           >
+            <!-- Slot for displaying actions -->
             <template v-slot:[`item.actions`]="{ item }">
               <v-btn color="primary" @click="viewContact(item.id)">View</v-btn>
               <v-btn color="secondary" @click="navigateToEditContact(item.id)">
@@ -38,9 +39,13 @@
       <!-- Empty Contacts Message -->
       <v-row v-else>
         <v-col>
-          <div class="empty-message">
+          <div class="empty-contacts">
             <h2>No Contacts Found</h2>
-            <p>No contacts have been added yet.</p>
+            <p>
+              Looks like you don't have any contacts yet.
+              <router-link to="/dashboard">Go back to the dashboard</router-link
+              >.
+            </p>
           </div>
         </v-col>
       </v-row>
@@ -49,24 +54,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { useContactsStore } from "../store/contactsStore"; // Import store
-import AppLayout from "../layouts/AppLayout.vue"; // Ensure AppLayout is imported
+import AppLayout from "../layouts/AppLayout.vue";
+import { useContactsStore } from "../store/contactsStore";
 
 const router = useRouter();
-const contactsStore = useContactsStore(); // Initialize store
+const contactStore = useContactsStore();
 
-// Reactive state bindings
 const page = ref(1);
 const itemsPerPage = ref(5);
 
-// Computed properties
-const contacts = computed(() => contactsStore.contacts);
-const totalItems = computed(() => contactsStore.totalItems);
-const loading = computed(() => contactsStore.loading);
-
-// Table headers
 const tableHeaders = [
   { text: "Name", align: "start", key: "name" },
   { text: "Email", align: "start", key: "email" },
@@ -74,46 +72,50 @@ const tableHeaders = [
   { text: "Actions", align: "center" },
 ];
 
-// Fetch contacts
-const fetchContacts = async () => {
-  await contactsStore.fetchContacts(page.value, itemsPerPage.value);
+// Fetch contacts when the page changes
+const fetchContacts = () => {
+  contactStore.fetchContacts(page.value, itemsPerPage.value);
 };
 
-// Navigation functions
+// View contact details
 const viewContact = (id) => {
   router.push(`/contacts/${id}`);
 };
 
+// Navigate to the Create Contact page
 const navigateToCreateContact = () => {
   router.push("/contacts/create");
 };
 
+// Navigate to the Edit Contact page
 const navigateToEditContact = (id) => {
   router.push(`/contacts/edit/${id}`);
 };
 
-// Delete contact
+// Delete a contact
 const deleteContact = async (id) => {
-  await contactsStore.deleteContact(id);
-  fetchContacts(); // Refresh contacts
+  await contactStore.deleteContact(id);
+  fetchContacts(); // Refresh the list after deletion
 };
 
-// Watch for page changes and fetch data
-watch(page, () => fetchContacts());
-
-// Initial fetch on mount
+// Fetch contacts on component mount
 onMounted(() => {
   fetchContacts();
 });
 </script>
 
 <style scoped>
-.empty-message {
+.empty-contacts {
   text-align: center;
   margin-top: 50px;
 }
-.empty-message h2 {
+
+.empty-contacts h2 {
   font-size: 24px;
   margin-bottom: 10px;
+}
+
+.empty-contacts p {
+  font-size: 18px;
 }
 </style>

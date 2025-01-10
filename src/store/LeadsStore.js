@@ -16,6 +16,29 @@ export const useLeadsStore = defineStore("leads", {
   }),
 
   actions: {
+    // Fetch all leads without pagination
+    async fetchAllLeads() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const authStore = useAuthStore();
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/api/leads/`,
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.accessToken}`,
+            },
+          }
+        );
+
+        this.leads = response.data.results; // Store all leads
+      } catch (err) {
+        this.error = err.response?.data || "Failed to fetch leads";
+      } finally {
+        this.loading = false;
+      }
+    },
+
     // Fetch leads with pagination
     async fetchLeads(page = 1) {
       this.loading = true;
@@ -23,7 +46,7 @@ export const useLeadsStore = defineStore("leads", {
       try {
         const authStore = useAuthStore();
         const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/leads/?page=${page}`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/leads/?page=${page}`,
           {
             headers: {
               Authorization: `Bearer ${authStore.accessToken}`,
@@ -48,7 +71,7 @@ export const useLeadsStore = defineStore("leads", {
       try {
         const authStore = useAuthStore();
         const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/leads/${id}/`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/leads/${id}/`,
           {
             headers: {
               Authorization: `Bearer ${authStore.accessToken}`,
@@ -70,7 +93,7 @@ export const useLeadsStore = defineStore("leads", {
       try {
         const authStore = useAuthStore();
         const response = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/leads/`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/leads/`,
           data,
           {
             headers: {
@@ -95,7 +118,7 @@ export const useLeadsStore = defineStore("leads", {
       try {
         const authStore = useAuthStore();
         const response = await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/leads/${id}/`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/leads/${id}/`,
           data,
           {
             headers: {
@@ -122,7 +145,7 @@ export const useLeadsStore = defineStore("leads", {
       try {
         const authStore = useAuthStore();
         await axios.delete(
-          `${import.meta.env.VITE_API_BASE_URL}/leads/${id}/`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/leads/${id}/`,
           {
             headers: {
               Authorization: `Bearer ${authStore.accessToken}`,
